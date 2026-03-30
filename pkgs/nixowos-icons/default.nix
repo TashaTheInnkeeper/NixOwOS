@@ -8,13 +8,21 @@
           stdenv,
           imagemagick,
           lib,
+          runCommand,
           ...
         }:
         stdenv.mkDerivation (finalAttrs: {
           pname = "nixowos-icons";
           version = "0-unstable-2025-08-05";
 
-          src = self + /assets;
+          # Wrap the assets path in a derivation with a url attribute
+          # for compatibility with overlays that expect src.url (e.g. Stylix)
+          src = runCommand "nixowos-assets" {
+            passthru.url = "https://github.com/yunfachi/NixOwOS/tree/master/assets";
+          } ''
+            cp -r ${self + /assets} $out
+            chmod -R +w $out
+          '';
 
           nativeBuildInputs = [ imagemagick ];
 
